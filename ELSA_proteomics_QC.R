@@ -26,6 +26,7 @@ library(tidyr)
 ###LOADING DATASETS
 setwd("~path")
 
+###REMOVE CONTROL, QC_FAIL, OUTLIERS
 ###CVDII
 data_CVDII <- read_NPX("Q-07545_Steptoe_NPX_CVDII.xlsx")
 data_CVDII_remove_control <- data_CVDII[grepl("^BR", data_CVDII$SampleID), ] 
@@ -121,7 +122,7 @@ data_NEX_wide <- data_NEX_wide %>%
 
 names(data_NEX_wide)[names(data_NEX_wide) == "SampleID"] <- "ELSA_ID"
 
-###########CVD II
+###CVDII
 data_CVDII %>% 
   filter(!str_detect(SampleID, 'CONTROL_SAMPLE')) %>% 
   olink_pca_plot(df = .,
@@ -138,7 +139,7 @@ qc$data %>% filter(Outlier == 1) %>% select(SampleID, Panel, IQR, sample_median,
 
 qc
 
-###########NEU I
+###NEU I
 data_NEUI %>% 
   filter(!str_detect(SampleID, 'CONTROL_SAMPLE')) %>% 
   olink_pca_plot(df = .,
@@ -155,7 +156,7 @@ qc$data %>% filter(Outlier == 1) %>% select(SampleID, Panel, IQR, sample_median,
 
 qc
 
-###########NEX
+###NEX
 data_NEX=data_NEX_remove_bridge
 
 data_NEX %>% 
@@ -174,9 +175,8 @@ qc$data %>% filter(Outlier == 1) %>% select(SampleID, Panel, IQR, sample_median,
 
 qc
 
-# Write the new data frame to CSV
 #write.csv(data_NEX_wide, "Q_08033_Q_08440_Steptoe_NPX_NEX_wide.csv", quote = TRUE, row.names = FALSE)
 
-#Merge three panels
+###Merge three panels
 data_olink_all_1<-merge(data_NEUI_wide,data_CVDII_wide,by="ELSA_ID",all=T)
 data_olink_all<-merge(data_olink_all_1,data_NEX_wide,by="ELSA_ID",all=T)
