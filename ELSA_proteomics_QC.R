@@ -176,3 +176,7 @@ qc
 
 # Write the new data frame to CSV
 #write.csv(data_NEX_wide, "Q_08033_Q_08440_Steptoe_NPX_NEX_wide.csv", quote = TRUE, row.names = FALSE)
+
+#Merge three panels
+data_olink_all_1<-merge(data_NEUI_wide,data_CVDII_wide,by="ELSA_ID",all=T)
+data_olink_all<-merge(data_olink_all_1,data_NEX_wide,by="ELSA_ID",all=T)
