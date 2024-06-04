@@ -1,0 +1,63 @@
+library(survival)
+
+load(~path/imputed_data.rds)
+
+imputed_data_1 <- complete(imputed_data,15)
+
+# Get protein columns
+proteins_to_exclude <- c()
+
+df=imputed_data_1
+
+protein_columns <- setdiff(colnames(df)[c(1:276)], proteins_to_exclude)
+
+# Initialize an empty data frame to store results
+results_table <- data.frame(
+  Protein = character(),
+  Hazard_Ratio = numeric(),
+  CI_Lower = numeric(),
+  CI_Upper = numeric(),
+  Uncorrected_P_Value = numeric(),
+  fdr_Corrected_P_Value = numeric(),
+  stringsAsFactors = FALSE
+)
+
+# Loop through each protein
+for (protein_name in protein_columns) {
+  # Fit Cox proportional hazards model
+  fit <- with(data = imputed_data, 
+              exp = coxph(Surv(time_DEMENTIA, DEMENTIA) ~ get(protein_name)))
+  #      #   + age + sex + race+ education_yr + smoke_3 + depression + cvd + sbp + ldl + bmi
+  # Summarize the fit
+  summary_fit <- summary(pool(fit))
+  
+  # Extract relevant information
+  coef <- summary_fit[1, 2]
+  se <- summary_fit[1, 3]
+  hazard_ratio <- exp(coef)
+  p_value <- summary_fit[1, 6]
+  z <- qnorm(0.975)
+  ci_lower <- hazard_ratio * exp(-z * se)
+  ci_upper <- hazard_ratio * exp(z * se)
+  
+  # Apply fdr's correction to the p-value
+  num_proteins <- length(protein_columns)
+  fdr_corrected_p <- p.adjust(p_value, method = "fdr", n = num_proteins)
+  
+  # Append results to the data frame
+  results_table <- rbind(results_table, data.frame(
+    Protein = protein_name,
+    Hazard_Ratio = hazard_ratio,
+    CI_Lower = ci_lower,
+    CI_Upper = ci_upper,
+    Uncorrected_P_Value = p_value,
+    fdr_Corrected_P_Value = fdr_corrected_p
+  ))
+}
+
+# Print or use the results_table as needed
+print(results_table)
+  
+jpeg("FINAL_fully-adjust_volcano.jpg",width=800,height=500,units="mm",res=800)
+print(p)
+dev.off()
