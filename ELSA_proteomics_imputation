@@ -1,0 +1,88 @@
+rm(list = ls())
+
+###LOADING LIBRARIES
+#install.packages("OlinkAnalyze")
+library(OlinkAnalyze)
+#install.packages("readr")
+library(readr)
+#install.packages("dplyr")
+library(dplyr)
+#install.packages("ggplot2")
+library(ggplot2)
+#install.packages("stringr")
+library(stringr)
+#install.packages("readxl")
+library(readxl)
+#install.packages("ggplotify")
+library(ggplotify)
+#install.packages("pheatmap")
+library(pheatmap)
+#install.packages("foreign")
+library(foreign)
+#install.packages("haven")
+library(haven)
+#install.packages("stringi")
+library(stringi)
+#install.packages("magrittr")
+library(magrittr)
+#install.packages("readxl")
+library(readxl)
+#install.packages("tidyr")
+library(tidyr)
+#install.packages("mice")
+library(mice)
+#install.packages("finalfit")
+library(finalfit)
+#install.packages("imputation", dependencies = TRUE)
+#library(imputation)
+
+#install.packages("impute")
+library(impute)
+
+#install.packages("VIM")
+library(VIM)
+
+#install.packages("tidyverse")
+library(tidyverse)
+library(impute)
+
+#######################################
+data_olink_final<-read.csv(~path)
+
+set.seed(123)
+
+data_olink_final[, 1:276] <- apply(data_olink_final[, 1:276], 2, as.numeric)
+
+# Rank-based inverse normalisation and scaling of each protein
+for(i in colnames(data_olink_final)[c(1:276)]){
+  data_olink_final[,i] <- qnorm((rank(data_olink_final[,i], na.last='keep')-0.5)/sum(!is.na(data_olink_final[,i])))
+}
+
+# Scale protein data
+data_olink_final[,1:276] <- apply(data_olink_final[,1:276], 2, scale)
+
+olink=data_olink_final
+
+## Imputations of missing data
+# KNN imputation
+colnames(olink)
+IDs <- olink[c(277)]
+data <- olink[c(1:276)]
+covar <- olink[c(278:298)]
+
+set.seed(123)
+
+data <- as.matrix(data)
+rownames(data) <- IDs$pseudo_ind_id
+data <- t(data)
+print(dim(data))
+imputed <- impute.knn(data,k=57)
+imputed_protein <- as.data.frame(t(imputed$data))
+identical(as.character(rownames(imputed_protein)), as.character(IDs$pseudo_ind_id))
+imputed_protein_covar<-cbind(IDs,imputed_protein, covar)
+
+set.seed(123)
+
+imputed_data <- mice(imputed_protein_covar, 
+                     m = 30,  
+                     maxit = 10)
