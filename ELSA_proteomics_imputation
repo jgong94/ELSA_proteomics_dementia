@@ -46,7 +46,7 @@ library(VIM)
 library(tidyverse)
 library(impute)
 
-#######################################
+###LOAD DATA
 data_olink_final<-read.csv(~path)
 
 set.seed(123)
@@ -83,6 +83,7 @@ imputed_protein_covar<-cbind(IDs,imputed_protein, covar)
 
 set.seed(123)
 
+# MICE imputation
 imputed_data <- mice(imputed_protein_covar, 
                      m = 30,  
                      maxit = 10)
