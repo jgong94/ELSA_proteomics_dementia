@@ -73,7 +73,7 @@ covar <- olink[c(278:298)]
 set.seed(123)
 
 data <- as.matrix(data)
-rownames(data) <- IDs$pseudo_ind_id
+rownames(data) <- IDs$idauniq
 data <- t(data)
 print(dim(data))
 imputed <- impute.knn(data,k=57)
