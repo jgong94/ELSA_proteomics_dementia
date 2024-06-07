@@ -78,7 +78,7 @@ data <- t(data)
 print(dim(data))
 imputed <- impute.knn(data,k=57)
 imputed_protein <- as.data.frame(t(imputed$data))
-identical(as.character(rownames(imputed_protein)), as.character(IDs$pseudo_ind_id))
+identical(as.character(rownames(imputed_protein)), as.character(IDs$idauniq))
 imputed_protein_covar<-cbind(IDs,imputed_protein, covar)
 
 set.seed(123)
