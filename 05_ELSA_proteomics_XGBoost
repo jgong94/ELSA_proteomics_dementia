@@ -1,0 +1,49 @@
+library(magrittr)
+library(tidyverse)
+library(fastshap)
+#install.packages("shapviz")
+library(shapviz)
+library(ggplot2)
+#install.packages("xgboost")
+library(xgboost)
+library(ggplot2)
+library(shapper)
+library(gridExtra)
+
+data <- data %>% 
+  rename(memory = cog_mem)
+
+vfactor <- c("DEMENTIA")
+data[vfactor] <- lapply(data[vfactor], factor)
+
+colnames(data)
+
+set.seed(123)
+dtrain <- xgb.DMatrix(data.matrix(data[,-293]), 
+                      label = data[,293])
+
+fit <- xgb.train(params = list(eta = 0.01,
+                               #nthread = 2,
+                               eval_metric = "auc"),
+                 data = dtrain,
+                 nrounds = 500)
+
+shap <- shapviz(fit,X_pred =data.matrix(data[,-293]))
+
+a <- sv_importance(shap, kind = "beeswarm",max_display = 50L) + 
+  theme_classic() +
+  theme(text=element_text(size=20) # Increase size of legend text
+  )
+
+a
+
+b <- sv_importance(shap, show_numbers = TRUE, number_size = 5,max_display = 50L) + theme_classic() +
+  theme(
+    text=element_text(size=20) # Increase size of legend text
+  )
+
+b
+
+SHAP_2 <- grid.arrange(a, b, ncol = 2)
+
+SHAP_2
